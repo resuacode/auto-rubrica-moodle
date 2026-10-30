@@ -78,10 +78,14 @@ export function validate(rubric) {
   return rubric;
 }
 
-export function parseFile(path) {
-  const text = readFileSync(path, 'utf8');
-  const ext = extname(path).toLowerCase();
+/** Interpreta el contenido de un archivo; la extensión de `name` decide el formato. */
+export function parseText(text, name) {
+  const ext = extname(name).toLowerCase();
   if (ext === '.md') return validate(parseMarkdown(text));
   if (ext === '.csv') return validate(parseCsv(text));
   throw new Error('Formato no soportado (usa .md o .csv)');
+}
+
+export function parseFile(path) {
+  return parseText(readFileSync(path, 'utf8'), path);
 }
