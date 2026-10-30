@@ -3,14 +3,18 @@
  * Se asume que la página ya muestra el formulario de edición de la rúbrica.
  */
 const CRITERIA = '#rubric-criteria tr.criterion';
-const ADD_CRITERION = 'input[name="rubric[addcriterion]"]';
+const ADD_CRITERION = 'input[name="rubric[criteria][addcriterion]"]';
 
+// Con JavaScript activo, Moodle oculta los textarea/inputs y muestra su valor en un
+// div.plainvalue, así que no se puede hacer clic en ellos: se asigna el valor
+// directamente y se actualiza también el texto visible.
 async function setValue(page, handle, value) {
-  await handle.click({ clickCount: 3 });
   await page.evaluate((el, v) => {
     el.value = v;
     el.dispatchEvent(new Event('input', { bubbles: true }));
     el.dispatchEvent(new Event('change', { bubbles: true }));
+    const plain = el.parentElement?.querySelector('.plainvalue');
+    if (plain) plain.textContent = v;
   }, handle, String(value));
 }
 
