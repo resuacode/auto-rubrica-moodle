@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'">
+<title>Auto Rúbrica Moodle</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<main>
+  <header>
+    <h1>Auto Rúbrica Moodle</h1>
+    <p class="muted">Carga una rúbrica en <code>.md</code> o <code>.csv</code> y pásala al editor de rúbricas de Moodle.</p>
+  </header>
+
+  <section class="step">
+    <h2><span class="num">1</span> Chrome y Moodle</h2>
+    <div class="row">
+      <span id="status" class="status off">Comprobando…</span>
+      <button id="launch" type="button">Abrir Chrome para Moodle</button>
+    </div>
+    <p class="hint">Usa la ventana de Chrome que abre <em>Abrir Chrome para Moodle</em> (la primera vez tendrás que iniciar sesión en Moodle).
+      Ve a la actividad → <em>Calificación avanzada</em> → <em>Definir nueva rúbrica</em>.</p>
+  </section>
+
+  <section class="step">
+    <h2><span class="num">2</span> Rúbrica</h2>
+    <div id="drop" class="drop" tabindex="0">
+      <p><strong>Arrastra aquí</strong> el archivo de la rúbrica</p>
+      <p class="muted">o</p>
+      <button id="choose" type="button">Seleccionar archivo…</button>
+    </div>
+    <p id="file-error" class="error" hidden></p>
+    <div id="preview" hidden></div>
+  </section>
+
+  <section class="step">
+    <h2><span class="num">3</span> Importar</h2>
+    <div class="row">
+      <button id="import" type="button" class="primary" disabled>Importar a Moodle</button>
+      <span id="import-hint" class="muted"></span>
+    </div>
+    <ul id="log" class="log" hidden></ul>
+  </section>
+</main>
+<script src="renderer.js"></script>
+</body>
+</html>

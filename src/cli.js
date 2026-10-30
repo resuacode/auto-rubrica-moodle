@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 import { parseArgs } from 'node:util';
-import puppeteer from 'puppeteer-core';
 import { parseFile } from './parser.js';
 import { fillRubric } from './filler.js';
+import { connect, pickPage } from './browser.js';
 
 function usage() {
   console.log(`Uso: node src/cli.js <archivo.md|.csv> [--url <url_edicion_rubrica>] [--browser-url http://127.0.0.1:9222] [--dry-run]
@@ -30,22 +30,6 @@ try {
   process.exit(1);
 }
 
-// Elige la pestaña sobre la que trabajar: prioriza la que ya muestra el editor de
-// rúbricas y, entre varias candidatas, la que está visible (pestaña activa).
-async function pickPage(browser, needsEditor) {
-  const pages = await browser.pages();
-  const info = await Promise.all(pages.map((p) => p.evaluate(() => ({
-    editor: !!document.querySelector('#rubric-criteria'),
-    visible: document.visibilityState === 'visible',
-  })).catch(() => ({ editor: false, visible: false }))));
-  const pick = (idx) => idx.find((i) => info[i].visible) ?? idx[0];
-  const all = pages.map((_, i) => i);
-  const withEditor = all.filter((i) => info[i].editor);
-  if (needsEditor && withEditor.length) return pages[pick(withEditor)];
-  const i = pick(all);
-  return i === undefined ? browser.newPage() : pages[i];
-}
-
 if (values.help) { usage(); process.exit(0); }
 if (positionals.length !== 1) { usage(); process.exit(1); }
 const [file] = positionals;
@@ -56,10 +40,7 @@ try {
     console.log(JSON.stringify(rubric, null, 2));
     process.exit(0);
   }
-  const browser = await puppeteer.connect({
-    browserURL: values['browser-url'],
-    defaultViewport: null,
-  });
+  const browser = await connect(values['browser-url']);
   const { url } = values;
   const page = await pickPage(browser, !url);
   if (url) await page.goto(url, { waitUntil: 'networkidle2' });

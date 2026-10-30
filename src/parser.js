@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import { extname } from 'node:path';
+import { extname, win32 } from 'node:path';
 
 /**
  * Estructura devuelta: { name, criteria: [{ description, levels: [{ score, definition }] }] }
@@ -78,10 +78,20 @@ export function validate(rubric) {
   return rubric;
 }
 
+/**
+ * Interpreta el contenido de un archivo; la extensión de `name` decide el formato.
+ * Moodle exige un nombre para la rúbrica: si el archivo no lo trae, se usa el del archivo.
+ */
+export function parseText(text, name) {
+  const ext = extname(name);
+  let rubric;
+  if (ext.toLowerCase() === '.md') rubric = parseMarkdown(text);
+  else if (ext.toLowerCase() === '.csv') rubric = parseCsv(text);
+  else throw new Error('Formato no soportado (usa .md o .csv)');
+  rubric.name ||= win32.basename(name, ext); // admite rutas con / y con \
+  return validate(rubric);
+}
+
 export function parseFile(path) {
-  const text = readFileSync(path, 'utf8');
-  const ext = extname(path).toLowerCase();
-  if (ext === '.md') return validate(parseMarkdown(text));
-  if (ext === '.csv') return validate(parseCsv(text));
-  throw new Error('Formato no soportado (usa .md o .csv)');
+  return parseText(readFileSync(path, 'utf8'), path);
 }
