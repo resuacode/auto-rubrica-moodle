@@ -26,7 +26,7 @@ export async function fillRubric(page, rubric, { log = console.log } = {}) {
     if (nameInput) await setValue(page, nameInput, rubric.name);
   }
 
-  // Elimina criterios existentes por defecto reutilizándolos: se rellenan en orden.
+  // Reutiliza en orden los criterios que ya hay en el formulario y añade los que falten.
   for (let ci = 0; ci < rubric.criteria.length; ci++) {
     const crit = rubric.criteria[ci];
     let rows = await page.$$(CRITERIA);
@@ -37,7 +37,7 @@ export async function fillRubric(page, rubric, { log = console.log } = {}) {
     }
     const row = rows[ci];
 
-    // Asegura el número de niveles necesario
+    // Ajusta el número de niveles: añade los que falten y quita los que sobren
     const levelSel = 'td.level';
     let levels = await row.$$(levelSel);
     while (levels.length < crit.levels.length) {
@@ -50,6 +50,9 @@ export async function fillRubric(page, rubric, { log = console.log } = {}) {
         {}, ci, levelSel, before);
       levels = await (await page.$$(CRITERIA))[ci].$$(levelSel);
     }
+    // Se quitan del DOM igual que hace el JS de Moodle tras confirmar el borrado:
+    // lo que no se envía en el formulario no se guarda.
+    for (const extra of levels.slice(crit.levels.length)) await extra.evaluate((el) => el.remove());
 
     const freshRow = (await page.$$(CRITERIA))[ci];
     const desc = await freshRow.$('td.description textarea');
@@ -64,5 +67,10 @@ export async function fillRubric(page, rubric, { log = console.log } = {}) {
     }
     log(`Criterio ${ci + 1}/${rubric.criteria.length}: ${crit.description}`);
   }
+
+  // Quita los criterios que ya había en el formulario y no están en el archivo
+  const extraCriteria = (await page.$$(CRITERIA)).slice(rubric.criteria.length);
+  for (const extra of extraCriteria) await extra.evaluate((el) => el.remove());
+  if (extraCriteria.length) log(`Eliminados ${extraCriteria.length} criterio(s) sobrante(s).`);
   log('Rúbrica rellenada. Revísala y pulsa "Guardar" en Moodle.');
 }
