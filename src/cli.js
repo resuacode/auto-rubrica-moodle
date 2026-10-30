@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { parseArgs } from 'node:util';
 import puppeteer from 'puppeteer-core';
 import { parseFile } from './parser.js';
 import { fillRubric } from './filler.js';
@@ -8,12 +9,26 @@ function usage() {
 
   --dry-run     Solo valida el archivo y muestra la rúbrica interpretada.
   --browser-url Chrome abierto con --remote-debugging-port (por defecto http://127.0.0.1:9222).
-  --url         Navega a esta URL antes de rellenar (opcional; si no, usa la pestaña activa).`);
+  --url         Navega a esta URL antes de rellenar (opcional; si no, usa la pestaña activa).
+  --help, -h    Muestra esta ayuda.`);
 }
 
-const args = process.argv.slice(2);
-const opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args[i + 1] : d; };
-const file = args.find((a, i) => !a.startsWith('--') && !(i > 0 && args[i - 1].startsWith('--') && args[i - 1] !== '--dry-run'));
+let values, positionals;
+try {
+  ({ values, positionals } = parseArgs({
+    allowPositionals: true,
+    options: {
+      url: { type: 'string' },
+      'browser-url': { type: 'string', default: 'http://127.0.0.1:9222' },
+      'dry-run': { type: 'boolean' },
+      help: { type: 'boolean', short: 'h' },
+    },
+  }));
+} catch (e) {
+  console.error('Error:', e.message);
+  usage();
+  process.exit(1);
+}
 
 // Elige la pestaña sobre la que trabajar: prioriza la que ya muestra el editor de
 // rúbricas y, entre varias candidatas, la que está visible (pestaña activa).
@@ -31,19 +46,21 @@ async function pickPage(browser, needsEditor) {
   return i === undefined ? browser.newPage() : pages[i];
 }
 
-if (!file || args.includes('--help')) { usage(); process.exit(file ? 0 : 1); }
+if (values.help) { usage(); process.exit(0); }
+if (positionals.length !== 1) { usage(); process.exit(1); }
+const [file] = positionals;
 
 try {
   const rubric = parseFile(file);
-  if (args.includes('--dry-run')) {
+  if (values['dry-run']) {
     console.log(JSON.stringify(rubric, null, 2));
     process.exit(0);
   }
   const browser = await puppeteer.connect({
-    browserURL: opt('--browser-url', 'http://127.0.0.1:9222'),
+    browserURL: values['browser-url'],
     defaultViewport: null,
   });
-  const url = opt('--url');
+  const { url } = values;
   const page = await pickPage(browser, !url);
   if (url) await page.goto(url, { waitUntil: 'networkidle2' });
   await fillRubric(page, rubric);
