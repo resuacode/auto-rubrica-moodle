@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { parseFile, parseMarkdown } from '../src/parser.js';
+import { parseFile, parseMarkdown, parseText } from '../src/parser.js';
 
 test('md y csv de ejemplo se interpretan', () => {
   const md = parseFile('ejemplos/rubrica.md');
@@ -13,4 +13,9 @@ test('md y csv de ejemplo se interpretan', () => {
 
 test('nivel sin criterio falla', () => {
   assert.throws(() => parseMarkdown('- 1: x'));
+});
+
+test('sin nombre se usa el del archivo', () => {
+  assert.equal(parseFile('ejemplos/rubrica.csv').name, 'rubrica');
+  assert.equal(parseText('## C\n- 0: a\n- 1: b', 'C:\\Rúbricas\\Proyecto 2.md').name, 'Proyecto 2');
 });

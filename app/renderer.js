@@ -10,9 +10,10 @@ function render() {
     : 'Chrome no conectado';
   $('launch').hidden = connected;
 
-  $('import').disabled = state.busy || !state.rubric || !editor;
+  $('import').disabled = state.busy || !state.rubric?.name || !editor;
   $('import-hint').textContent = state.busy ? 'Importando…'
     : !state.rubric ? 'Carga primero una rúbrica.'
+    : !state.rubric.name ? 'Escribe un nombre para la rúbrica.'
     : !editor ? 'Abre el editor de rúbricas en Chrome.'
     : '';
 }
@@ -33,10 +34,14 @@ function showRubric({ fileName, rubric }) {
 
   const head = document.createElement('div');
   head.className = 'summary';
-  head.innerHTML = '<strong></strong><span class="muted"></span>';
-  head.querySelector('strong').textContent = rubric.name || fileName;
+  head.innerHTML = '<label for="rubric-name">Nombre de la rúbrica</label>'
+    + '<input id="rubric-name" type="text" required><span class="muted"></span>';
+  // Moodle exige un nombre; el parser ya pone el del archivo si no viene en él.
+  const nameInput = head.querySelector('input');
+  nameInput.value = rubric.name;
+  nameInput.addEventListener('input', () => { rubric.name = nameInput.value.trim(); render(); });
   head.querySelector('span').textContent =
-    ` · ${fileName} · ${rubric.criteria.length} criterios · ${max} puntos máx.`;
+    `${fileName} · ${rubric.criteria.length} criterios · ${max} puntos máx.`;
   preview.append(head);
 
   for (const c of rubric.criteria) {

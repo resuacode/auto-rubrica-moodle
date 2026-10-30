@@ -89,7 +89,19 @@ button:disabled { opacity: .5; cursor: default; }
 .error { color: var(--off); margin-top: 10px; }
 
 #preview { margin-top: 14px; display: grid; gap: 10px; }
-.summary { padding-bottom: 4px; }
+.summary { padding-bottom: 4px; display: grid; gap: 4px; }
+.summary label { font-weight: 600; }
+.summary input {
+  font: inherit;
+  font-size: 15px;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+}
+.summary input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+.summary input:invalid { border-color: var(--off); }
 .criterion { border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; }
 .criterion ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
 .criterion li { display: grid; grid-template-columns: 56px 1fr; gap: 8px; }
