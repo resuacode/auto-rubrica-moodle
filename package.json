@@ -1,7 +1,7 @@
 {
   "name": "auto-rubrica-moodle",
-  "version": "0.1.0",
-  "description": "Automatizador de rúbricas para Moodle desde VS Code",
+  "version": "1.0.0",
+  "description": "Crea rúbricas en Moodle desde archivos .md o .csv (aplicación para Windows y línea de comandos)",
   "type": "module",
   "bin": {
     "auto-rubrica": "src/cli.js"
