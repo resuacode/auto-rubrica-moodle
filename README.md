@@ -41,5 +41,7 @@ Opciones: `--browser-url` (por defecto `http://127.0.0.1:9222`), `--url`, `--dry
 ## Pruebas
 `npm test`
 
+Los tests del rellenado (`test/filler.test.js`) abren en Chrome headless una imitación del editor de Moodle (`test/fixtures/editor-rubrica.html`). Buscan Chrome en `CHROME_PATH`, en las rutas habituales o en la caché de Puppeteer, y se omiten si no lo encuentran.
+
 ## Notas
 Los selectores se basan en el editor estándar de Moodle (`gradingform_rubric`). Si tu tema o versión difiere, ajusta las constantes en `src/filler.js`.

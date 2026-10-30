@@ -1,0 +1,53 @@
+<!doctype html>
+<!-- Imitación mínima del editor gradingform_rubric de Moodle con JavaScript activo:
+     los campos están ocultos (.hiddenelement) y su valor se muestra en div.plainvalue;
+     los botones de añadir se resuelven en el cliente sin enviar el formulario. -->
+<html>
+<head>
+<meta charset="utf-8">
+<style>.hiddenelement { display: none; }</style>
+</head>
+<body>
+<form id="mform">
+  <input type="text" id="id_name" name="name">
+  <table class="criteria" id="rubric-criteria"><tbody></tbody></table>
+  <input type="submit" name="rubric[criteria][addcriterion]" value="Añadir criterio">
+</form>
+<script>
+  let next = 1;
+  const field = (tag, name) =>
+    `<${tag} class="hiddenelement" name="${name}"${tag === 'input' ? ' type="text">' : '></textarea>'}<div class="plainvalue"></div>`;
+
+  function levelHtml(cid) {
+    const p = `rubric[criteria][${cid}][levels][NEWID${next++}]`;
+    return `<td class="level"><div class="definition">${field('textarea', p + '[definition]')}</div>`
+      + `<div class="score">${field('input', p + '[score]')}</div></td>`;
+  }
+
+  function addCriterion() {
+    const cid = `NEWID${next++}`;
+    const tr = document.createElement('tr');
+    tr.className = 'criterion';
+    tr.innerHTML = `<td class="description">${field('textarea', `rubric[criteria][${cid}][description]`)}</td>`
+      + `<td class="levels"><table><tr class="levelsgroup">${levelHtml(cid) + levelHtml(cid) + levelHtml(cid)}</tr></table>`
+      + `<input type="submit" name="rubric[criteria][${cid}][levels][addlevel]" value="Añadir nivel"></td>`;
+    document.querySelector('#rubric-criteria tbody').append(tr);
+  }
+
+  document.addEventListener('click', (e) => {
+    const name = e.target.name || '';
+    if (name === 'rubric[criteria][addcriterion]') addCriterion();
+    else if (name.endsWith('[addlevel]')) {
+      const cid = name.match(/criteria\]\[(\w+)\]/)[1];
+      e.target.closest('td.levels').querySelector('tr.levelsgroup').insertAdjacentHTML('beforeend', levelHtml(cid));
+    } else return;
+    e.preventDefault();
+  });
+
+  // Moodle crea una rúbrica nueva con criterios de 3 niveles; aquí se parte de 2
+  // criterios para poder comprobar que se eliminan los sobrantes.
+  addCriterion();
+  addCriterion();
+</script>
+</body>
+</html>
