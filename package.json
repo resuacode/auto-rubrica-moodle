@@ -3,13 +3,42 @@
   "version": "0.1.0",
   "description": "Automatizador de rúbricas para Moodle desde VS Code",
   "type": "module",
-  "bin": { "auto-rubrica": "src/cli.js" },
+  "bin": {
+    "auto-rubrica": "src/cli.js"
+  },
   "scripts": {
     "start": "node src/cli.js",
+    "app": "electron .",
+    "build:win": "electron-builder --win portable",
     "test": "node --test test/*.test.js"
   },
   "dependencies": {
     "puppeteer-core": "^24.0.0"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^38.8.6",
+    "electron-builder": "^26.18.0"
+  },
+  "main": "app/main.js",
+  "productName": "Auto Rubrica Moodle",
+  "build": {
+    "appId": "com.resuacode.autorubricamoodle",
+    "productName": "Auto Rubrica Moodle",
+    "files": [
+      "app/**",
+      "src/**",
+      "package.json"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": "portable",
+      "signAndEditExecutable": false
+    },
+    "portable": {
+      "artifactName": "AutoRubricaMoodle-${version}.exe"
+    }
+  }
 }
