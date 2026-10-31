@@ -1,9 +1,9 @@
 import { app, BrowserWindow, dialog, ipcMain } from 'electron';
 import { spawn } from 'node:child_process';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync } from 'node:fs';
 import { basename, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { parseText } from '../src/parser.js';
+import { parseFile } from '../src/parser.js';
 import { fillRubric } from '../src/filler.js';
 import { connect, findEditorPages, DEFAULT_BROWSER_URL } from '../src/browser.js';
 
@@ -52,7 +52,7 @@ function launchChrome() {
 }
 
 function loadRubric(path) {
-  return { fileName: basename(path), rubric: parseText(readFileSync(path, 'utf8'), path) };
+  return { fileName: basename(path), rubric: parseFile(path) };
 }
 
 // Los errores se devuelven como datos para que la interfaz muestre solo el mensaje.
