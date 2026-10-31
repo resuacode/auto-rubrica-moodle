@@ -1,7 +1,8 @@
 import { app, BrowserWindow, dialog, ipcMain } from 'electron';
 import { spawn } from 'node:child_process';
 import { existsSync } from 'node:fs';
-import { basename, join } from 'node:path';
+import { homedir } from 'node:os';
+import { basename, delimiter, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseFile } from '../src/parser.js';
 import { fillRubric } from '../src/filler.js';
@@ -33,16 +34,28 @@ async function chromeStatus() {
 
 // Chrome solo admite depuración remota con un perfil distinto del habitual, así que
 // la aplicación usa uno propio: la sesión de Moodle iniciada en él se conserva.
+function chromeCandidates() {
+  if (process.platform === 'win32') {
+    const bases = [process.env.PROGRAMFILES, process.env['PROGRAMFILES(X86)'], process.env.LOCALAPPDATA];
+    return bases.filter(Boolean).map((b) => join(b, 'Google', 'Chrome', 'Application', 'chrome.exe'));
+  }
+  if (process.platform === 'darwin') {
+    const apps = ['Google Chrome.app/Contents/MacOS/Google Chrome', 'Chromium.app/Contents/MacOS/Chromium'];
+    return ['/Applications', join(homedir(), 'Applications')].flatMap((dir) => apps.map((a) => join(dir, a)));
+  }
+  // Linux: los ejecutables habituales en el PATH, y algunas rutas fijas por si no están en él
+  const names = ['google-chrome-stable', 'google-chrome', 'chromium', 'chromium-browser'];
+  const dirs = (process.env.PATH ?? '').split(delimiter).concat('/usr/bin', '/snap/bin');
+  return dirs.flatMap((dir) => names.map((n) => join(dir, n))).concat('/opt/google/chrome/chrome');
+}
+
 function findChrome() {
-  const bases = [process.env.PROGRAMFILES, process.env['PROGRAMFILES(X86)'], process.env.LOCALAPPDATA];
-  return bases.filter(Boolean)
-    .map((b) => join(b, 'Google', 'Chrome', 'Application', 'chrome.exe'))
-    .find((p) => existsSync(p));
+  return chromeCandidates().find((p) => existsSync(p));
 }
 
 function launchChrome() {
   const chrome = findChrome();
-  if (!chrome) throw new Error('No se encontró Google Chrome instalado.');
+  if (!chrome) throw new Error('No se encontró Google Chrome (ni Chromium) instalado.');
   const profile = join(app.getPath('userData'), 'chrome-moodle');
   spawn(chrome, [
     `--remote-debugging-port=${DEBUG_PORT}`,
