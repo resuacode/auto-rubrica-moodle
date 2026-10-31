@@ -9,7 +9,7 @@
   "scripts": {
     "start": "node src/cli.js",
     "app": "electron .",
-    "build:win": "electron-builder --win portable",
+    "build:win": "electron-builder --win portable --publish never",
     "test": "node --test test/*.test.js"
   },
   "dependencies": {

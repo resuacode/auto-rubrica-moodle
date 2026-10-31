@@ -20,7 +20,7 @@ Descarga `AutoRubricaMoodle-<versión>.exe` desde la [página de releases](https
 2. **Abre el editor de rúbricas.** En esa ventana de Chrome, entra en la actividad (con el método de calificación *Rúbrica*), ve a *Calificación avanzada* y elige definir un nuevo formulario de calificación desde cero.
    La aplicación mostrará en verde **Editor detectado** con el título de la página.
 3. **Carga la rúbrica.** Arrastra el archivo `.md` o `.csv` a la aplicación, o pulsa **Seleccionar archivo…**.
-   Verás una vista previa con los criterios, niveles, puntuaciones y la puntuación máxima. Si el archivo tiene algún error, se indica la línea o fila.
+   Verás una vista previa con los criterios, niveles, puntuaciones y la puntuación máxima. Si el archivo tiene algún error, se indica la línea o fila. El botón **i** junto al título «Rúbrica» muestra el formato que deben tener los archivos.
 4. **Revisa el nombre.** El campo **Nombre de la rúbrica** es obligatorio en Moodle. Se rellena con el título del archivo (o con el nombre del archivo si no tiene título); puedes cambiarlo.
 5. **Importa.** Pulsa **Importar a Moodle**. La aplicación rellena el nombre, los criterios, los niveles y las puntuaciones, y añade o elimina filas para que coincidan con tu archivo.
 6. **Guarda en Moodle.** Revisa la rúbrica en Chrome y guárdala con el botón de Moodle (como lista para usar o como borrador). La aplicación nunca guarda por ti.
@@ -115,3 +115,13 @@ npm run build:win   # genera el .exe portable en dist/
 - En la terminal de VS Code, ejecuta `unset ELECTRON_RUN_AS_NODE` antes de `npm run app`; si no, Electron arranca como Node.
 - `npm run build:win` funciona también desde Linux/WSL sin Wine (por eso el `.exe` usa el icono por defecto de Electron).
 - Los selectores se basan en el editor estándar de Moodle (`gradingform_rubric`). Si tu tema o versión difiere, ajusta las constantes de `src/filler.js`.
+
+### Publicar una versión
+Cada push y pull request ejecuta los tests (`.github/workflows/ci.yml`). Para publicar una versión probada:
+
+```bash
+npm version minor        # o patch / major: actualiza package.json, hace commit y crea la etiqueta vX.Y.Z
+git push --follow-tags   # sube el commit y la etiqueta
+```
+
+Al llegar la etiqueta, `.github/workflows/release.yml` pasa los tests, comprueba que la etiqueta coincide con la versión de `package.json`, genera el `.exe` y crea la release de GitHub con el ejecutable adjunto (si ya existía, sustituye el `.exe`). El texto fijo de las notas está en `.github/release-notes.md`; debajo se añaden automáticamente los cambios desde la versión anterior.
