@@ -57,7 +57,9 @@ Cada criterio necesita **al menos 2 niveles**. Las puntuaciones pueden tener dec
 ```
 
 ### CSV (`.csv`)
-Cabecera `criterio,puntos,descripcion` y una fila por nivel. Las filas del mismo criterio se agrupan. Si un texto contiene comas, ponlo entre comillas.
+Cabecera `criterio,puntos,descripcion` y una fila por nivel. Las filas del mismo criterio se agrupan. Las columnas pueden ir separadas por comas o por punto y coma (como guarda Excel en español); se detecta automáticamente. Si un texto contiene el separador, ponlo entre comillas.
+
+Se admiten archivos en UTF-8 y en ANSI (Windows-1252), así que desde Excel sirve tanto «CSV UTF-8» como «CSV (delimitado por comas)».
 
 ```csv
 criterio,puntos,descripcion

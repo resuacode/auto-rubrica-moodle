@@ -33,7 +33,7 @@ export function parseMarkdown(text) {
   return rubric;
 }
 
-export function parseCsvRows(text) {
+export function parseCsvRows(text, delimiter = ',') {
   const rows = [];
   let row = [], field = '', quoted = false;
   for (let i = 0; i < text.length; i++) {
@@ -43,7 +43,7 @@ export function parseCsvRows(text) {
       else if (c === '"') quoted = false;
       else field += c;
     } else if (c === '"') quoted = true;
-    else if (c === ',') { row.push(field); field = ''; }
+    else if (c === delimiter) { row.push(field); field = ''; }
     else if (c === '\n' || c === '\r') {
       if (c === '\r' && text[i + 1] === '\n') i++;
       row.push(field); field = '';
@@ -56,8 +56,17 @@ export function parseCsvRows(text) {
   return rows;
 }
 
+// Excel en español guarda los CSV separados por «;»: se elige el separador que
+// más aparece en la cabecera (fuera de comillas).
+export function detectDelimiter(text) {
+  const header = text.split(/\r?\n/, 1)[0].replace(/"[^"]*"/g, '');
+  const count = (c) => header.split(c).length - 1;
+  return count(';') > count(',') ? ';' : ',';
+}
+
 export function parseCsv(text) {
-  const rows = parseCsvRows(text.replace(/^\uFEFF/, ''));
+  text = text.replace(/^\uFEFF/, '');
+  const rows = parseCsvRows(text, detectDelimiter(text));
   const rubric = { name: '', criteria: [] };
   rows.slice(1).forEach((r, i) => {
     if (r.length < 3) throw new Error(`Fila CSV incompleta (fila ${i + 2})`);
@@ -92,6 +101,19 @@ export function parseText(text, name) {
   return validate(rubric);
 }
 
+/**
+ * Lee el archivo como UTF-8 y, si no lo es, como Windows-1252 (lo que usa Excel
+ * en español al guardar «CSV (delimitado por comas)»), para no perder las tildes.
+ */
+export function readText(path) {
+  const bytes = readFileSync(path);
+  try {
+    return new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+  } catch {
+    return new TextDecoder('windows-1252').decode(bytes);
+  }
+}
+
 export function parseFile(path) {
-  return parseText(readFileSync(path, 'utf8'), path);
+  return parseText(readText(path), path);
 }
