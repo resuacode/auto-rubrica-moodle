@@ -2,20 +2,43 @@ name: Release
 
 # Se publica al subir una etiqueta de versión (p. ej. con `npm version minor` y
 # `git push --follow-tags`). Si la release de esa etiqueta ya existe, se
-# sustituye el .exe; si no, se crea.
+# sustituyen sus archivos; si no, se crea.
+# Lanzado a mano (Actions → Release → Run workflow) solo genera los paquetes,
+# que quedan como artefactos de la ejecución, sin publicar nada.
 on:
   push:
     tags: ['v*']
+  workflow_dispatch:
 
 jobs:
   test:
     uses: ./.github/workflows/ci.yml
 
-  release:
+  build:
     needs: test
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: windows
+            script: build:win
+            os: ubuntu-latest
+            files: dist/*.exe
+          - name: linux
+            script: build:linux
+            os: ubuntu-latest
+            files: |
+              dist/*.AppImage
+              dist/*.deb
+          # Los .dmg solo se pueden generar en macOS
+          - name: mac
+            script: build:mac
+            os: macos-latest
+            files: dist/*.dmg
+    runs-on: ${{ matrix.os }}
+    env:
+      # electron-builder descarga el Electron de cada plataforma; el de node_modules no se usa
+      ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -24,6 +47,7 @@ jobs:
           cache: npm
 
       - name: Comprobar que la etiqueta coincide con package.json
+        if: github.ref_type == 'tag'
         run: |
           VERSION=$(node -p "require('./package.json').version")
           if [ "v$VERSION" != "$GITHUB_REF_NAME" ]; then
@@ -32,23 +56,44 @@ jobs:
           fi
 
       - run: npm ci
-      - run: npm run build:win
+      - run: npm run ${{ matrix.script }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.name }}
+          path: ${{ matrix.files }}
+          if-no-files-found: error
+
+  release:
+    needs: build
+    if: github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
 
       - name: Crear o actualizar la release
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ github.ref_name }}
         run: |
-          EXE=$(ls dist/*.exe)
           {
             cat .github/release-notes.md
             echo
-            echo "SHA-256 de \`$(basename "$EXE")\`: \`$(sha256sum "$EXE" | cut -d' ' -f1)\`"
+            echo '### SHA-256'
+            echo '```'
+            (cd dist && sha256sum *)
+            echo '```'
           } > notes.md
           if gh release view "$TAG" > /dev/null 2>&1; then
-            gh release upload "$TAG" "$EXE" --clobber
+            gh release upload "$TAG" dist/* --clobber
           else
-            gh release create "$TAG" "$EXE" --verify-tag \
+            gh release create "$TAG" dist/* --verify-tag \
               --title "Auto Rúbrica Moodle ${TAG#v}" \
               --notes-file notes.md --generate-notes
           fi
