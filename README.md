@@ -2,17 +2,28 @@
 Crea rúbricas en Moodle a partir de un archivo `.md` o `.csv`, sin tener que escribir a mano cada criterio, nivel y puntuación. Rellena el editor de rúbricas de Moodle en tu navegador; no hace falta instalar nada en el servidor de Moodle.
 
 Hay dos formas de usarlo:
-- **Aplicación para Windows**: arrastras el archivo, pulsas *Importar* y listo. No requiere línea de comandos.
+- **Aplicación de escritorio** para Windows, macOS y Linux: arrastras el archivo, pulsas *Importar* y listo. No requiere línea de comandos.
 - **Línea de comandos** (Windows, macOS o Linux con Node.js).
 
 ---
 
-## Aplicación para Windows
+## Aplicación de escritorio
 
-### Descarga
-Descarga `AutoRubricaMoodle-<versión>.exe` desde la [página de releases](https://github.com/resuacode/auto-rubrica-moodle/releases/latest). Es un ejecutable portable: no se instala, basta con abrirlo. Solo necesitas tener **Google Chrome** instalado.
+### Descarga e instalación
+Descarga el archivo de tu sistema desde la [página de releases](https://github.com/resuacode/auto-rubrica-moodle/releases/latest). Solo necesitas tener **Google Chrome** instalado (en macOS y Linux también sirve Chromium).
 
-> La primera vez Windows SmartScreen puede avisar de que la aplicación no es de un editor reconocido (no está firmada). Pulsa **Más información → Ejecutar de todas formas**.
+| Sistema | Archivo | Cómo se instala |
+|---|---|---|
+| **Windows** | `AutoRubricaMoodle-<versión>.exe` | No se instala: es portable, basta con abrirlo. |
+| **macOS** con Apple Silicon (M1, M2…) | `…-mac-arm64.dmg` | Abre el `.dmg` y arrastra la aplicación a *Aplicaciones*. |
+| **macOS** con Intel | `…-mac-x64.dmg` | Igual que el anterior. |
+| **Linux** (Ubuntu, Debian…) | `…-linux-amd64.deb` | `sudo apt install ./AutoRubricaMoodle-<versión>-linux-amd64.deb`; aparece en el menú de aplicaciones. |
+| **Linux** (cualquier distribución) | `…-linux-x86_64.AppImage` | Portable: dale permiso de ejecución (`chmod +x` o *Propiedades → Permitir ejecutar*) y ábrelo. |
+
+La aplicación no está firmada, así que la primera vez el sistema avisará:
+- **Windows**: SmartScreen dice que no es de un editor reconocido. Pulsa **Más información → Ejecutar de todas formas**.
+- **macOS**: si no permite abrirla, ve a **Ajustes del Sistema → Privacidad y seguridad** y pulsa **Abrir igualmente**. Si dice que la aplicación «está dañada», ejecuta en Terminal `xattr -cr "/Applications/Auto Rubrica Moodle.app"` y vuelve a abrirla.
+- **Linux (AppImage)**: si no arranca en Ubuntu, instala FUSE: `sudo apt install libfuse2t64` (o `libfuse2` en versiones anteriores a la 24.04).
 
 ### Uso
 1. **Abre Chrome desde la aplicación.** Pulsa **Abrir Chrome para Moodle**. Se abre una ventana de Chrome con un perfil propio de la aplicación (Chrome no permite que otro programa controle tu perfil habitual).
@@ -30,7 +41,7 @@ Descarga `AutoRubricaMoodle-<versión>.exe` desde la [página de releases](https
 |---|---|
 | *Chrome no conectado* | Pulsa **Abrir Chrome para Moodle**. Si ya tenías esa ventana abierta y la cerraste, vuelve a pulsarlo. |
 | *Chrome conectado, pero no hay ninguna pestaña con el editor de rúbricas* | En la ventana de Chrome abierta por la aplicación, abre el editor de la rúbrica (paso 2). Las pestañas de tu Chrome habitual no se detectan. |
-| *No se encontró Google Chrome instalado* | Instala Google Chrome en su ubicación por defecto. |
+| *No se encontró Google Chrome (ni Chromium) instalado* | Instala Google Chrome en su ubicación por defecto. En Linux, la aplicación busca `google-chrome`, `google-chrome-stable`, `chromium` o `chromium-browser`. |
 | Error en la vista previa | Revisa el archivo en la línea o fila indicada (ver [formato](#formato-del-archivo)). |
 
 ---
@@ -109,13 +120,15 @@ npm install
 npm install
 npm test            # tests del parser y del rellenado
 npm run app         # abre la aplicación de escritorio
-npm run build:win   # genera el .exe portable en dist/
+npm run build:win   # .exe portable de Windows en dist/
+npm run build:linux # .AppImage y .deb de Linux
+npm run build:mac   # .dmg de macOS (Apple Silicon e Intel); solo funciona en macOS
 ```
 
 - `src/parser.js` lee los archivos, `src/filler.js` rellena el editor y `src/browser.js` localiza Chrome y la pestaña del editor; los usan tanto `src/cli.js` como la aplicación (`app/`, Electron).
 - Los tests del rellenado abren en Chrome headless una imitación del editor de Moodle (`test/fixtures/editor-rubrica.html`). Buscan Chrome en `CHROME_PATH`, en las rutas habituales o en la caché de Puppeteer, y se omiten si no lo encuentran.
 - En la terminal de VS Code, ejecuta `unset ELECTRON_RUN_AS_NODE` antes de `npm run app`; si no, Electron arranca como Node.
-- `npm run build:win` funciona también desde Linux/WSL sin Wine (por eso el `.exe` usa el icono por defecto de Electron).
+- `npm run build:win` funciona también desde Linux/WSL sin Wine (por eso el `.exe` usa el icono por defecto de Electron). En macOS, sin certificado de Apple, la aplicación se firma «ad hoc», lo mínimo para que arranque en Apple Silicon.
 - Los selectores se basan en el editor estándar de Moodle (`gradingform_rubric`). Si tu tema o versión difiere, ajusta las constantes de `src/filler.js`.
 
 ### Publicar una versión
@@ -126,4 +139,6 @@ npm version minor        # o patch / major: actualiza package.json, hace commit 
 git push --follow-tags   # sube el commit y la etiqueta
 ```
 
-Al llegar la etiqueta, `.github/workflows/release.yml` pasa los tests, comprueba que la etiqueta coincide con la versión de `package.json`, genera el `.exe` y crea la release de GitHub con el ejecutable adjunto (si ya existía, sustituye el `.exe`). El texto fijo de las notas está en `.github/release-notes.md`; debajo se añaden automáticamente los cambios desde la versión anterior.
+Al llegar la etiqueta, `.github/workflows/release.yml` pasa los tests, comprueba que la etiqueta coincide con la versión de `package.json`, genera los paquetes de Windows y Linux (en Ubuntu) y de macOS (en un runner de macOS), y crea la release de GitHub con todos ellos (si ya existía, sustituye los archivos).
+
+Para comprobar que los paquetes se generan sin publicar nada, lanza el workflow a mano: *Actions → Release → Run workflow*. Los paquetes quedan como artefactos descargables de esa ejecución. El texto fijo de las notas está en `.github/release-notes.md`; debajo se añaden automáticamente los cambios desde la versión anterior.
