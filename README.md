@@ -20,7 +20,7 @@ Descarga `AutoRubricaMoodle-<versión>.exe` desde la [página de releases](https
 2. **Abre el editor de rúbricas.** En esa ventana de Chrome, entra en la actividad (con el método de calificación *Rúbrica*), ve a *Calificación avanzada* y elige definir un nuevo formulario de calificación desde cero.
    La aplicación mostrará en verde **Editor detectado** con el título de la página.
 3. **Carga la rúbrica.** Arrastra el archivo `.md` o `.csv` a la aplicación, o pulsa **Seleccionar archivo…**.
-   Verás una vista previa con los criterios, niveles, puntuaciones y la puntuación máxima. Si el archivo tiene algún error, se indica la línea o fila.
+   Verás una vista previa con los criterios, niveles, puntuaciones y la puntuación máxima. Si el archivo tiene algún error, se indica la línea o fila. El botón **i** junto al título «Rúbrica» muestra el formato que deben tener los archivos.
 4. **Revisa el nombre.** El campo **Nombre de la rúbrica** es obligatorio en Moodle. Se rellena con el título del archivo (o con el nombre del archivo si no tiene título); puedes cambiarlo.
 5. **Importa.** Pulsa **Importar a Moodle**. La aplicación rellena el nombre, los criterios, los niveles y las puntuaciones, y añade o elimina filas para que coincidan con tu archivo.
 6. **Guarda en Moodle.** Revisa la rúbrica en Chrome y guárdala con el botón de Moodle (como lista para usar o como borrador). La aplicación nunca guarda por ti.

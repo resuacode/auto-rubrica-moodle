@@ -24,7 +24,8 @@
   </section>
 
   <section class="step">
-    <h2><span class="num">2</span> Rúbrica</h2>
+    <h2><span class="num">2</span> Rúbrica
+      <button id="format-info" type="button" class="info" title="Formato de los archivos" aria-label="Formato de los archivos">i</button></h2>
     <div id="drop" class="drop" tabindex="0">
       <p><strong>Arrastra aquí</strong> el archivo de la rúbrica</p>
       <p class="muted">o</p>
@@ -43,6 +44,52 @@
     <ul id="log" class="log" hidden></ul>
   </section>
 </main>
+
+<dialog id="format-dialog" aria-labelledby="format-title">
+  <div class="dialog-head">
+    <h2 id="format-title">Formato de los archivos</h2>
+    <button type="button" class="close" data-close aria-label="Cerrar">×</button>
+  </div>
+  <div class="dialog-body">
+    <p>Puedes usar un archivo <code>.md</code> (Markdown) o <code>.csv</code>. En los dos casos:</p>
+    <ul>
+      <li>Cada criterio necesita <strong>al menos 2 niveles</strong>.</li>
+      <li>Las puntuaciones son números; pueden llevar decimales (<code>2.5</code> o <code>2,5</code>).</li>
+      <li>Si el archivo no indica el nombre de la rúbrica, se usa el nombre del archivo (puedes cambiarlo antes de importar).</li>
+    </ul>
+
+    <h3>Markdown (.md)</h3>
+    <ul>
+      <li><code># Nombre</code>: nombre de la rúbrica (opcional; se ignora el prefijo «Rúbrica:»).</li>
+      <li><code>## Criterio</code>: un título por criterio.</li>
+      <li><code>- puntos: descripción</code>: una línea por nivel, debajo de su criterio.</li>
+    </ul>
+    <pre># Rúbrica: Trabajo final
+
+## Claridad de la exposición
+- 0: Confusa, no se entiende el mensaje
+- 5: Comprensible con algunas lagunas
+- 10: Clara y bien estructurada
+
+## Uso de fuentes
+- 0: No cita fuentes
+- 5: Cita fuentes variadas</pre>
+
+    <h3>CSV (.csv)</h3>
+    <ul>
+      <li>Primera fila de cabecera: <code>criterio,puntos,descripcion</code>.</li>
+      <li>Una fila por nivel; las filas con el mismo criterio se agrupan en orden.</li>
+      <li>Columnas separadas por comas. Si un texto lleva comas, ponlo entre comillas dobles.</li>
+      <li>Guárdalo en UTF-8 para que las tildes se lean bien.</li>
+    </ul>
+    <pre>criterio,puntos,descripcion
+Claridad de la exposición,0,"Confusa, no se entiende el mensaje"
+Claridad de la exposición,5,Comprensible con algunas lagunas
+Claridad de la exposición,10,Clara y bien estructurada
+Uso de fuentes,0,No cita fuentes
+Uso de fuentes,5,Cita fuentes variadas</pre>
+  </div>
+</dialog>
 <script src="renderer.js"></script>
 </body>
 </html>

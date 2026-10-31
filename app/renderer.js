@@ -90,6 +90,13 @@ $('launch').addEventListener('click', async () => {
 
 $('choose').addEventListener('click', async () => handleResult(await window.api.chooseRubric()));
 
+const formatDialog = $('format-dialog');
+$('format-info').addEventListener('click', () => formatDialog.showModal());
+// Se cierra con el botón, con Esc (nativo de <dialog>) o pulsando fuera del cuadro
+formatDialog.addEventListener('click', (e) => {
+  if (e.target === formatDialog || e.target.closest('[data-close]')) formatDialog.close();
+});
+
 const drop = $('drop');
 ['dragenter', 'dragover'].forEach((ev) => drop.addEventListener(ev, (e) => {
   e.preventDefault();
