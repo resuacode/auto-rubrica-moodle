@@ -27,7 +27,8 @@ async function chromeStatus() {
   const browser = await getBrowser().catch(() => null);
   if (!browser) return { connected: false };
   const [page] = await findEditorPages(browser);
-  return { connected: true, editor: page ? await page.title() : null };
+  // La interfaz muestra el título; sin él, la URL (un título vacío no debe parecer «sin editor»)
+  return { connected: true, editor: page ? (await page.title()) || page.url() : null };
 }
 
 // Chrome solo admite depuración remota con un perfil distinto del habitual, así que
