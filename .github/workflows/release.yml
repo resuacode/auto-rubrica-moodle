@@ -1,0 +1,54 @@
+name: Release
+
+# Se publica al subir una etiqueta de versión (p. ej. con `npm version minor` y
+# `git push --follow-tags`). Si la release de esa etiqueta ya existe, se
+# sustituye el .exe; si no, se crea.
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  test:
+    uses: ./.github/workflows/ci.yml
+
+  release:
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Comprobar que la etiqueta coincide con package.json
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          if [ "v$VERSION" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::La etiqueta $GITHUB_REF_NAME no coincide con la versión de package.json ($VERSION)"
+            exit 1
+          fi
+
+      - run: npm ci
+      - run: npm run build:win
+
+      - name: Crear o actualizar la release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          EXE=$(ls dist/*.exe)
+          {
+            cat .github/release-notes.md
+            echo
+            echo "SHA-256 de \`$(basename "$EXE")\`: \`$(sha256sum "$EXE" | cut -d' ' -f1)\`"
+          } > notes.md
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            gh release upload "$TAG" "$EXE" --clobber
+          else
+            gh release create "$TAG" "$EXE" --verify-tag \
+              --title "Auto Rúbrica Moodle ${TAG#v}" \
+              --notes-file notes.md --generate-notes
+          fi

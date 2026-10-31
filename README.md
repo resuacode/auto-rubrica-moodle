@@ -115,3 +115,13 @@ npm run build:win   # genera el .exe portable en dist/
 - En la terminal de VS Code, ejecuta `unset ELECTRON_RUN_AS_NODE` antes de `npm run app`; si no, Electron arranca como Node.
 - `npm run build:win` funciona también desde Linux/WSL sin Wine (por eso el `.exe` usa el icono por defecto de Electron).
 - Los selectores se basan en el editor estándar de Moodle (`gradingform_rubric`). Si tu tema o versión difiere, ajusta las constantes de `src/filler.js`.
+
+### Publicar una versión
+Cada push y pull request ejecuta los tests (`.github/workflows/ci.yml`). Para publicar una versión probada:
+
+```bash
+npm version minor        # o patch / major: actualiza package.json, hace commit y crea la etiqueta vX.Y.Z
+git push --follow-tags   # sube el commit y la etiqueta
+```
+
+Al llegar la etiqueta, `.github/workflows/release.yml` pasa los tests, comprueba que la etiqueta coincide con la versión de `package.json`, genera el `.exe` y crea la release de GitHub con el ejecutable adjunto (si ya existía, sustituye el `.exe`). El texto fijo de las notas está en `.github/release-notes.md`; debajo se añaden automáticamente los cambios desde la versión anterior.
